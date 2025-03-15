@@ -6,11 +6,11 @@ const chalk = require("chalk").default;
 const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
-const open = require("open");
+const open = require("open").default; // Use .default for CommonJS compatibility
 const ora = require("ora").default;
 const fetch = require("node-fetch");
 const figlet = require("figlet");
-const boxen = require("boxen").default; // Use .default for CommonJS compatibility
+const boxen = require("boxen").default;
 
 const CONFIG_PATH = path.join(
   process.env.HOME || process.env.USERPROFILE,
