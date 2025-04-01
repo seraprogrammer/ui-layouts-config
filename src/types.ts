@@ -15,3 +15,9 @@ export interface TokenUsage {
   google: number;
   groq: number;
 }
+
+export interface Conversation {
+  id: string;
+  title: string;
+  createdAt: string;
+}
