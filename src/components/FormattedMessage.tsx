@@ -1,9 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css"; // Import a dark theme for code highlighting
+// Import additional languages
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import python from "highlight.js/lib/languages/python";
+import bash from "highlight.js/lib/languages/bash";
+import json from "highlight.js/lib/languages/json";
+import css from "highlight.js/lib/languages/css";
+import html from "highlight.js/lib/languages/xml";
+import hljs from "highlight.js/lib/core";
+
+// Register common languages
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("js", javascript);
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("ts", typescript);
+hljs.registerLanguage("python", python);
+hljs.registerLanguage("py", python);
+hljs.registerLanguage("bash", bash);
+hljs.registerLanguage("sh", bash);
+hljs.registerLanguage("json", json);
+hljs.registerLanguage("css", css);
+hljs.registerLanguage("html", html);
+hljs.registerLanguage("xml", html);
 
 interface FormattedMessageProps {
   content: string;
@@ -15,6 +38,9 @@ const FormattedMessage: React.FC<FormattedMessageProps> = ({
   isAssistant,
 }) => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [expandedThinkIndex, setExpandedThinkIndex] = useState<number | null>(
+    null
+  );
 
   // Only apply markdown formatting to assistant messages
   if (!isAssistant) {
@@ -31,23 +57,44 @@ const FormattedMessage: React.FC<FormattedMessageProps> = ({
   // Track code block indices
   let codeBlockIndex = 0;
 
+  // Pre-process content to handle <think> tags more robustly
+  const processedContent = useMemo(() => {
+    // First, sanitize the content by replacing all <think> tags with a safe alternative
+    return content.replace(
+      /<think>([\s\S]*?)<\/think>/gi,
+      (_, thinkContent) => {
+        // Replace any HTML tags inside the think content to prevent React warnings
+        const sanitizedThinkContent = thinkContent
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+
+        return `\n\n<ThinkBlock>\n\n${sanitizedThinkContent}\n\n</ThinkBlock>\n\n`;
+      }
+    );
+  }, [content]);
+
   return (
     <div className="markdown-content">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw, rehypeHighlight]}
+        rehypePlugins={[rehypeRaw, [rehypeHighlight, { ignoreMissing: true }]]}
         components={{
           // Style code blocks
           code({ node, inline, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
             const code = String(children).replace(/\n$/, "");
 
+            // Handle unknown languages
+            const language = match ? match[1] : "";
+            const isKnownLanguage = language && hljs.getLanguage(language);
+            const displayLanguage = isKnownLanguage ? language : "text";
+
             if (!inline && match) {
               const currentIndex = codeBlockIndex++;
               return (
                 <div className="my-4 rounded-md overflow-hidden border border-gray-700">
                   <div className="bg-gray-800/80 px-4 py-2 text-xs text-gray-400 flex items-center justify-between">
-                    <span className="font-medium">{match[1]}</span>
+                    <span className="font-medium">{displayLanguage}</span>
                     <button
                       className="text-gray-400 hover:text-white transition-colors flex items-center gap-1"
                       onClick={() => handleCopyCode(code, currentIndex)}
@@ -91,7 +138,10 @@ const FormattedMessage: React.FC<FormattedMessageProps> = ({
                   </div>
                   <div className="relative">
                     <pre className="p-4 bg-gray-900/50 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
-                      <code className={className} {...props}>
+                      <code
+                        className={isKnownLanguage ? className : ""}
+                        {...props}
+                      >
                         {children}
                       </code>
                     </pre>
@@ -117,6 +167,53 @@ const FormattedMessage: React.FC<FormattedMessageProps> = ({
               >
                 {children}
               </code>
+            );
+          },
+          // Handle ThinkBlock custom component
+          ThinkBlock: ({ children }) => {
+            const index = 0; // We'll just use a single index since we're using a custom component
+            const isExpanded = expandedThinkIndex === index;
+
+            return (
+              <div className="my-4 border border-gray-700 rounded-md overflow-hidden">
+                <button
+                  onClick={() =>
+                    setExpandedThinkIndex(isExpanded ? null : index)
+                  }
+                  className="w-full bg-gray-800 px-4 py-2 text-left flex items-center justify-between text-sm"
+                >
+                  <span className="font-medium text-gray-300">
+                    Thinking process
+                  </span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-4 w-4 transition-transform ${
+                      isExpanded ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+                <div
+                  className={`overflow-hidden transition-all duration-300 ${
+                    isExpanded
+                      ? "max-h-[1000px] opacity-100"
+                      : "max-h-0 opacity-0"
+                  }`}
+                >
+                  <div className="p-4 bg-gray-800/30 text-gray-300">
+                    {children}
+                  </div>
+                </div>
+              </div>
             );
           },
           // Style links
@@ -152,11 +249,15 @@ const FormattedMessage: React.FC<FormattedMessageProps> = ({
               {children}
             </ul>
           ),
-          ol: ({ node, children, ...props }) => (
-            <ol className="list-decimal pl-6 my-2" {...props}>
-              {children}
-            </ol>
-          ),
+          ol: ({ node, children, ...props }) => {
+            // Filter out the ordered prop to avoid DOM warnings
+            const { ordered, ...filteredProps } = props;
+            return (
+              <ol className="list-decimal pl-6 my-2" {...filteredProps}>
+                {children}
+              </ol>
+            );
+          },
           // Style blockquotes
           blockquote: ({ node, children, ...props }) => (
             <blockquote
@@ -207,7 +308,7 @@ const FormattedMessage: React.FC<FormattedMessageProps> = ({
           ),
         }}
       >
-        {content}
+        {processedContent}
       </ReactMarkdown>
     </div>
   );

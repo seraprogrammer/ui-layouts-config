@@ -234,3 +234,20 @@ html {
   width: 100vw;
   margin-left: calc(50% - 50vw);
 }
+
+/* Add these styles for the think blocks */
+.think-block {
+  margin: 1rem 0;
+}
+
+.think-block button:focus {
+  outline: none;
+}
+
+.think-block .max-h-0 {
+  transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+}
+
+.think-block .max-h-\[1000px\] {
+  transition: max-height 0.5s ease-in, opacity 0.3s ease-in;
+}
