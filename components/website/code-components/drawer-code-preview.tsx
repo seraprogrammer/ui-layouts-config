@@ -21,7 +21,9 @@ import ComponentPreview from './component-preview';
 import { extractCodeFromFilePath } from '@/lib/code';
 import React from 'react';
 import { Code, Eye, Maximize2 } from 'lucide-react';
-import prettier from 'prettier';
+import * as prettierStandalone from 'prettier/standalone';
+import * as prettierPluginBabel from 'prettier/plugins/babel';
+import * as prettierPluginEstree from 'prettier/plugins/estree';
 
 import { CopyButton } from './copy-button';
 import { ScrollArea } from '../ui/scroll-area';
@@ -95,13 +97,14 @@ export default async function DrawerCodePreview({
   let jsCode = result.outputText.replace(/"use strict";\s*/, '');
 
   // Format JavaScript code using Prettier
-  const formattedJsCode = await prettier.format(jsCode, {
+  const formattedJsCode = await prettierStandalone.format(jsCode, {
     parser: 'babel',
     semi: true,
     singleQuote: true,
     trailingComma: 'es5',
     printWidth: 80,
     jsxBracketSameLine: true, // Keep JSX tags in one line
+    plugins: [prettierPluginBabel, prettierPluginEstree],
   });
 
   const tsCode = {
