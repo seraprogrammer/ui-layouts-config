@@ -237,7 +237,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 text-gray-100">
+    <div className="flex h-screen bg-[#121212] text-gray-100">
       {/* Sidebar */}
       <Sidebar
         conversations={conversations}
@@ -250,46 +250,52 @@ export default function App() {
       />
 
       {/* Main content */}
-      <div className="flex flex-col flex-1 h-full">
+      <div className="flex flex-col flex-1 h-full overflow-hidden">
         {/* Token usage display */}
         <TokenUsageDisplay totalTokens={totalTokens} />
 
-        {/* Messages container */}
-        <div className="flex-1 overflow-auto py-4 px-4 md:px-8 lg:px-16 xl:px-32">
-          {/* Mobile sidebar toggle */}
-          <button
-            className="md:hidden mb-4 p-2 bg-gray-800 rounded-md"
-            onClick={() => setIsSidebarOpen(true)}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+        {/* Messages container - adjust max-width and alignment */}
+        <div className="flex-1 overflow-y-auto py-4 px-4 md:px-6 lg:px-8">
+          <div className="max-w-3xl mx-0 md:mx-auto">
+            {/* Mobile sidebar toggle */}
+            <button
+              className="md:hidden mb-4 p-2 bg-gray-800 rounded-md"
+              onClick={() => setIsSidebarOpen(true)}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
 
-          <MessageList messages={messages} isLoading={isLoading} />
-          <div ref={messagesEndRef} />
+            <MessageList messages={messages} isLoading={isLoading} />
+            <div ref={messagesEndRef} />
+          </div>
         </div>
 
         {/* Input form */}
-        <ChatInput
-          input={input}
-          setInput={setInput}
-          handleSubmit={handleSubmit}
-          isLoading={isLoading}
-          selectedProvider={selectedProvider}
-          setSelectedProvider={setSelectedProvider}
-        />
+        <div className="px-4 md:px-6 lg:px-8 pb-4">
+          <div className="max-w-3xl mx-0 md:mx-auto">
+            <ChatInput
+              input={input}
+              setInput={setInput}
+              handleSubmit={handleSubmit}
+              isLoading={isLoading}
+              selectedProvider={selectedProvider}
+              setSelectedProvider={setSelectedProvider}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
