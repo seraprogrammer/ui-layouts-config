@@ -32,7 +32,7 @@ function DocsSidebar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const groupedComponents = MainComponents.reduce((acc, component) => {
-    const group = component.component || null;
+    const group = null;
     //@ts-ignore
     if (!acc[group]) {
       //@ts-ignore
@@ -94,7 +94,7 @@ function DocsSidebar() {
 
   return (
     <aside
-      className={`h-full border-r fixed lg:relative inset-0 bg-background z-50 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+      className={`h-full border-r fixed lg:relative inset-0 bg-background z-20  transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
     >
       <div className='sticky top-0 h-screen w-full rounded-md pt-[3.2em]'>
         {/* Close button for mobile */}
@@ -204,7 +204,10 @@ export const ItemsWithName = ({
         {items.map((link: any, index: number) => (
           <li
             key={link.href}
-            ref={(el) => (itemRefs.current[index] = el)}
+            ref={(el) => {
+              itemRefs.current[index] = el;
+              // Return nothing (void)
+            }}
             className={`2xl:text-sm text-[0.81em] flex items-center gap-1 dark:hover:text-white 2xl:py-1 py-0.5 pl-2 border-l transition-all ${
               link.href === pathname
                 ? 'dark:border-white border-black text-black dark:text-white font-semibold'
