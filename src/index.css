@@ -1,0 +1,32 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Additional styles for Groq-like UI */
+.bg-gray-750 {
+  background-color: #2a2a2a;
+}
+
+/* Ensure placeholder text transitions smoothly */
+.query-bar textarea::placeholder {
+  color: transparent;
+}
+
+/* Custom scrollbar for the conversation list */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.5);
+}
